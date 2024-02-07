@@ -15,7 +15,7 @@ struct packet {
     unsigned int size;
     char* filename;
     char filedata[1000];
-}
+};
 
 int main(int argc, char* argv[]){
     // input should be udp listen port, so only 1 argument
