@@ -4,7 +4,7 @@
 #include <unistd.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#include <netdb.h>
+#include <time.h>
 
 int main(int argc,char *argv[])
 {
@@ -61,6 +61,7 @@ int main(int argc,char *argv[])
         perror ("Error making the socket\n");
         return -1;
     }
+    clock_t start_time = clock();
 
     //Send "ftp"
     if (sendto(sockfd, "ftp", strlen("ftp"), MSG_CONFIRM, (struct sockaddr *) &server_address, sizeof (server_address))<0){
@@ -82,6 +83,10 @@ int main(int argc,char *argv[])
         close(sockfd);
         return -1;
     }
+
+    clock_t end_time = clock();
+    double time_elapsed = ((double)(end_time - start_time))/ CLOCKS_PER_SEC;
+    printf("%fs have elaspsed\n", time_elapsed);
 
     buffer[msg_len] = '\0';
 
