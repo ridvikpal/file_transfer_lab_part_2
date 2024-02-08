@@ -122,7 +122,7 @@ int main(int argc,char *argv[])
     fseek(file, 0, SEEK_SET);
 
     //Find total number of fragments
-    int total_fragment = (file_size / MAX_PACKET_SIZE) + 1;
+    int total_fragment = ((int)file_size / MAX_PACKET_SIZE) + 1;
 
     struct timeval timeout;
     timeout.tv_sec = 2; //2 second timeout
@@ -162,7 +162,7 @@ int main(int argc,char *argv[])
             }
             msg_len = recvfrom(sockfd, (char*) buffer, BUFFER_SIZE, 0, (struct sockaddr*) &server_address, &client_address_size);
             if (msg_len == -1){
-                printf("recvfrom failed");
+                printf("recvfrom failed when trying to ACK\n");
                 close(sockfd);
                 return -1;
             }
