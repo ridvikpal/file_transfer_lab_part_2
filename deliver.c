@@ -136,6 +136,8 @@ int main(int argc,char *argv[])
 
     //Create the packet
     struct packet outgoing_packet;
+    outgoing_packet.total_frag = total_fragment;
+    outgoing_packet.frag_no = 1;
 
     while ((bytes_read = fread(outgoing_packet.filedata, 1, MAX_PACKET_SIZE, file)) > 0) {
         int ack = 0;
