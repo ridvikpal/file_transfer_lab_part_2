@@ -176,6 +176,7 @@ int main(int argc,char *argv[])
         free(outgoing_packet.filename);
         outgoing_packet.frag_no++;
     }
+    printf ("Successfully sent file: %s\n", file_name);
     fclose(file);
     free(str);
     close (sockfd);
