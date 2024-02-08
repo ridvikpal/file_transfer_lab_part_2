@@ -50,6 +50,36 @@ int main(int argc, char* argv[]){
         socklen_t clientAddressSize = sizeof(clientSockAddrIn);
         memset(&clientSockAddrIn, 0, sizeof(clientSockAddrIn));
 
+        // setup the connection first
+        ssize_t message_length = recvfrom(udpSocket, (char*)message, MESSAGE_SIZE, 0,
+                                          (struct sockaddr*)&clientSockAddrIn, &clientAddressSize);
+
+        if (message_length < 0){
+            printf("Failed to receive message.\n");
+            exit(1);
+        }
+
+        // null terminate the string so we can print via printf() easily
+        message[message_length] = '\0';
+
+        printf("Received message: %s\n", message);
+
+        // setup the response message
+        if (strcmp(message, "ftp") == 0){
+            strcpy(message, "yes");
+        }else{
+            strcpy(message, "no");
+        }
+
+        printf("Sending message: %s\n", message);
+
+        // send the response to the client
+        if (sendto(udpSocket, message, strlen(message), 0, (struct sockaddr*)&clientSockAddrIn,
+                   clientAddressSize)< 0) {
+            printf("Failed to send message.\n");
+            exit(1);
+        }
+
         while (1){
             // receive incoming packet via UDP connection
             ssize_t message_length = recvfrom(udpSocket, message, MESSAGE_SIZE, 0,
@@ -62,6 +92,7 @@ int main(int argc, char* argv[]){
 
             struct packet incomingPacket;
 
+
             // allocate space for the incoming packet filename
             incomingPacket.filename = malloc(256);
             if (!(incomingPacket.filename)){
@@ -73,16 +104,17 @@ int main(int argc, char* argv[]){
             sscanf(message, "%u:%u:%u:%255[^:]:", &incomingPacket.total_frag, &incomingPacket.frag_no,
                    &incomingPacket.size, incomingPacket.filename);
             // calculate the header size
-            int header_size = sizeof(incomingPacket.total_frag) + sizeof(incomingPacket.frag_no)
-                    + sizeof(incomingPacket.size) + sizeof(incomingPacket.filename);
+//            int header_size = sizeof(incomingPacket.total_frag) + sizeof(incomingPacket.frag_no)
+//                    + sizeof(incomingPacket.size) + sizeof(incomingPacket.filename);
 
             // calculate the header size using snprintf()
-//            char tempString[MESSAGE_SIZE];
-//            int header_size = snprintf(tempString, sizeof(tempString), "%u:%u:%u:%s:", incomingPacket.total_frag,
-//                                       incomingPacket.frag_no, incomingPacket.size, incomingPacket.filename);
+            char tempString[MESSAGE_SIZE];
+            int header_size = snprintf(tempString, sizeof(tempString), "%u:%u:%u:%s:", incomingPacket.total_frag,
+                                       incomingPacket.frag_no, incomingPacket.size, incomingPacket.filename);
 
             // copy the filedata to the incomingPacket
             memcpy(incomingPacket.filedata, message + header_size, incomingPacket.size);
+            printf("Got here\n");
 
             //if the packet is received, open file stream
             // we keep the file stream open starting from when first fragment comes until last fragment comes
