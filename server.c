@@ -18,6 +18,9 @@ struct packet {
 };
 
 int main(int argc, char* argv[]){
+
+    /**** CHECK FOR INPUT VALIDATION ****/
+
     // input should be udp listen port, so only 1 argument
     if (argc != 1){
         // ensure only 2 arguments are passed
@@ -26,13 +29,17 @@ int main(int argc, char* argv[]){
             exit(1);
         }
 
+        /**** SETUP SERVER AND CLIENT ADDRESSES ****/
+
         // setup our server address
         struct sockaddr_in serverSockAddrIn;
-        // fill the rest of the struct with 0
+        // fill the entire struct with zero to get rid of garbage values
         memset(&serverSockAddrIn, 0, sizeof(serverSockAddrIn));
+        // initialize the required values of the server address
         serverSockAddrIn.sin_family = AF_INET;
         serverSockAddrIn.sin_addr.s_addr = INADDR_ANY;
-        serverSockAddrIn.sin_port = htons(atoi(argv[1])); // setting the port number
+        // set the port number to the input port number to the one provided in the input
+        serverSockAddrIn.sin_port = htons(atoi(argv[1]));
 
         // create a new socket using socket(), returning socket fd
         int udpSocket = socket(AF_INET, SOCK_DGRAM, 0);
@@ -41,17 +48,21 @@ int main(int argc, char* argv[]){
 
         printf("Server started at port %s...\n", argv[1]);
 
-        // create buffer to store incoming message
-        char message[MESSAGE_SIZE];
-        // create file to store the actual file
-        FILE *file = NULL;
         // declare our client address
         struct sockaddr_in clientSockAddrIn;
         socklen_t clientAddressSize = sizeof(clientSockAddrIn);
         memset(&clientSockAddrIn, 0, sizeof(clientSockAddrIn));
 
+        /**** SETUP CONNECTION ****/
+
+        // create buffer to store incoming message
+        char message[MESSAGE_SIZE];
+        // create file to store the file coming from the client
+        FILE *file = NULL;
+
         while(1){
-            // setup the connection first
+
+            // get initial connection handshake
             ssize_t message_length = recvfrom(udpSocket, (char*)message, MESSAGE_SIZE, 0,
                                               (struct sockaddr*)&clientSockAddrIn, &clientAddressSize);
 
@@ -82,6 +93,8 @@ int main(int argc, char* argv[]){
                 exit(1);
             }
 
+            /**** TRANSFER THE FILE ****/
+
             int done = 0;
 
             while (done == 0){
@@ -107,9 +120,6 @@ int main(int argc, char* argv[]){
                 // store the header data
                 sscanf(message, "%u:%u:%u:%255[^:]:", &incomingPacket.total_frag, &incomingPacket.frag_no,
                        &incomingPacket.size, incomingPacket.filename);
-                // calculate the header size
-//            int header_size = sizeof(incomingPacket.total_frag) + sizeof(incomingPacket.frag_no)
-//                    + sizeof(incomingPacket.size) + sizeof(incomingPacket.filename);
 
                 // calculate the header size using snprintf()
                 char tempString[MESSAGE_SIZE];
@@ -150,6 +160,8 @@ int main(int argc, char* argv[]){
                     file = NULL;
                 }
 
+                /**** UPDATE THE CLIENT ****/
+
                 char response[] = "ACK";
 
                 // send the response to the client
@@ -159,6 +171,7 @@ int main(int argc, char* argv[]){
                     continue;
                 }
 
+                // free the char * we malloced earlier
                 free(incomingPacket.filename);
             }
         }
