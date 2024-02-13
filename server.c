@@ -70,6 +70,7 @@ int main(int argc, char* argv[]){
                 strcpy(message, "yes");
             }else{
                 strcpy(message, "no");
+                continue;
             }
 
             printf("Sending message: %s\n", message);
